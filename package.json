@@ -1,0 +1,11 @@
+{
+  "name": "vr-spline-editor",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:euclidxr/vr-spline-editor.git",
+  "author": "deep <cdeep.work@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.124.0"
+  }
+}
