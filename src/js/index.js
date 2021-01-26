@@ -1,30 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>three.js webgl - geometry - catmull spline editor</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <link type="text/css" rel="stylesheet" href="main.css">
-    <style>
-        body {
-            background-color: #f0f0f0;
-            color: #444;
-        }
-        a {
-            color: #08f;
-        }
-    </style>
-</head>
-<body>
-
-<div id="container"></div>
-<div id="info">
-    <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - geometry - catmull spline editor
-</div>
-
-<script type="module">
-
-  import {
+import {
     BoxBufferGeometry,
     Vector2,
     Vector3,
@@ -49,15 +23,14 @@
     AdditiveBlending,
     RingBufferGeometry,
     MeshBasicMaterial
-  } from './node_modules/three/build/three.module.js';
+  } from 'three';
 
-  import Stats from './node_modules/three/examples/jsm/libs/stats.module.js';
-  import { VRButton } from './node_modules/three/examples/jsm/webxr/VRButton.js';
-  import { XRControllerModelFactory } from './node_modules/three/examples/jsm/webxr/XRControllerModelFactory.js';
-  import { GUI } from './node_modules/three/examples/jsm/libs/dat.gui.module.js';
-
-  import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
-  import { TransformControls } from './node_modules/three/examples/jsm/controls/TransformControls.js';
+//   import Stats from 'three/examples/jsm/libs/stats.module.js';
+  import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
+  import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
+  import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
+  import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+  import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 
   let container, stats;
   let controller1, controller2;
@@ -139,8 +112,8 @@
 
     document.body.appendChild( VRButton.createButton( renderer ) );
 
-    stats = new Stats();
-    container.appendChild( stats.dom );
+    // stats = new Stats();
+    // container.appendChild( stats.dom );
 
     const gui = new GUI();
 
@@ -441,7 +414,7 @@
     splines.chordal.mesh.visible = params.chordal;
     renderer.render( scene, camera );
 
-    stats.update();
+    // stats.update();
 
   }
 
@@ -534,8 +507,3 @@
     }
 
   }
-
-</script>
-
-</body>
-</html>
