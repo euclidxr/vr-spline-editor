@@ -6,6 +6,10 @@
   "author": "deep <cdeep.work@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "parcel": "^1.12.4",
     "three": "^0.124.0"
+  },
+  "scripts": {
+    "start": "parcel src/index.html"
   }
 }
