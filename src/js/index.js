@@ -1,3 +1,5 @@
+// FIXME: Spline Curve Editor is attached to camera somewhere
+
 import {
     BoxBufferGeometry,
     Vector2,
@@ -74,7 +76,7 @@ import {
     scene.background = new Color( 0xf0f0f0 );
 
     camera = new PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-    camera.position.set( 0, 250, 1000 );
+    camera.position.set( 0, 50, 1000 );
     scene.add( camera );
 
     scene.add( new AmbientLight( 0xf0f0f0 ) );
@@ -115,45 +117,45 @@ import {
     // stats = new Stats();
     // container.appendChild( stats.dom );
 
-    const gui = new GUI();
+    // const gui = new GUI();
 
-    gui.add( params, 'uniform' );
-    gui.add( params, 'tension', 0, 1 ).step( 0.01 ).onChange( function ( value ) {
+    // gui.add( params, 'uniform' );
+    // gui.add( params, 'tension', 0, 1 ).step( 0.01 ).onChange( function ( value ) {
 
-      splines.uniform.tension = value;
-      updateSplineOutline();
+    //   splines.uniform.tension = value;
+    //   updateSplineOutline();
 
-    } );
-    gui.add( params, 'centripetal' );
-    gui.add( params, 'chordal' );
-    gui.add( params, 'addPoint' );
-    gui.add( params, 'removePoint' );
-    gui.add( params, 'exportSpline' );
-    gui.open();
+    // } );
+    // gui.add( params, 'centripetal' );
+    // gui.add( params, 'chordal' );
+    // gui.add( params, 'addPoint' );
+    // gui.add( params, 'removePoint' );
+    // gui.add( params, 'exportSpline' );
+    // gui.open();
 
     // Controls
-    const controls = new OrbitControls( camera, renderer.domElement );
-    controls.damping = 0.2;
-    controls.addEventListener( 'change', render );
+    // const controls = new OrbitControls( camera, renderer.domElement );
+    // controls.damping = 0.2;
+    // controls.addEventListener( 'change', render );
 
-    transformControl = new TransformControls( camera, renderer.domElement );
-    transformControl.addEventListener( 'change', render );
-    transformControl.addEventListener( 'dragging-changed', function ( event ) {
+    // transformControl = new TransformControls( camera, renderer.domElement );
+    // transformControl.addEventListener( 'change', render );
+    // transformControl.addEventListener( 'dragging-changed', function ( event ) {
 
-      controls.enabled = ! event.value;
+    //   controls.enabled = ! event.value;
 
-    } );
-    scene.add( transformControl );
+    // } );
+    // scene.add( transformControl );
 
-    transformControl.addEventListener( 'objectChange', function () {
+    // transformControl.addEventListener( 'objectChange', function () {
 
-      updateSplineOutline();
+    //   updateSplineOutline();
 
-    } );
+    // } );
 
-    document.addEventListener( 'pointerdown', onPointerDown, false );
-    document.addEventListener( 'pointerup', onPointerUp, false );
-    document.addEventListener( 'pointermove', onPointerMove, false );
+    // document.addEventListener( 'pointerdown', onPointerDown, false );
+    // document.addEventListener( 'pointerup', onPointerUp, false );
+    // document.addEventListener( 'pointermove', onPointerMove, false );
 
     /*******
      * Curves
@@ -327,7 +329,7 @@ import {
     splinePointsLength --;
     positions.pop();
 
-    if ( transformControl.object === point ) transformControl.detach();
+    // if ( transformControl.object === point ) transformControl.detach();
     scene.remove( point );
 
     updateSplineOutline();
@@ -406,8 +408,8 @@ import {
 
   function render() {
 
-    handleController( controller1 );
-    handleController( controller2 );
+    // handleController( controller1 );
+    // handleController( controller2 );
 
     splines.uniform.mesh.visible = params.uniform;
     splines.centripetal.mesh.visible = params.centripetal;
@@ -430,7 +432,7 @@ import {
     onUpPosition.x = event.clientX;
     onUpPosition.y = event.clientY;
 
-    if ( onDownPosition.distanceTo( onUpPosition ) === 0 ) transformControl.detach();
+    // if ( onDownPosition.distanceTo( onUpPosition ) === 0 ) transformControl.detach();
 
   }
 
@@ -447,11 +449,11 @@ import {
 
       const object = intersects[ 0 ].object;
 
-      if ( object !== transformControl.object ) {
+      // if ( object !== transformControl.object ) {
 
-        transformControl.attach( object );
+      //   transformControl.attach( object );
 
-      }
+      // }
 
     }
 
