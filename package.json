@@ -6,10 +6,11 @@
   "author": "deep <cdeep.work@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "lodash": "^4.17.20",
     "parcel": "^1.12.4",
     "three": "^0.124.0"
   },
   "scripts": {
-    "start": "parcel src/index.html"
+    "start": "parcel src/index.html --hmr-port=59119"
   }
 }
