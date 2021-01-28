@@ -3,6 +3,7 @@
 import {
     isNil,
     map,
+    pull,
     random
 } from "lodash";
 import {
@@ -22,18 +23,53 @@ import {
     ShadowMaterial,
     SpotLight,
     sRGBEncoding,
+    Vector3,
     WebGLRenderer
 } from "three";
 import {
     VRButton
 } from "three/examples/jsm/webxr/VRButton";
+import {
+    Arrow
+} from './arrow';
+import {
+    OptionMesh
+} from './options';
+import {
+    Controller
+} from "./raycaster";
+import {
+    SplineObject
+} from "./spline-object";
 
 export let SETUP_GLOBALS = {};
 
-const DEFAULT_SPLINE_POINTS = 4;
+const DEFAULT_SPLINE_POINTS = 5;
 const CURVE_LINE_WIDTH = 0.5;
 const splinePositions = [];
-const splines ={};
+const splineObjects = [];
+const splines = {};
+const point = new Vector3();
+const arrows = {};
+const axis = new Vector3();
+const up = new Vector3(0, 1, 0)
+
+export const OPTIONS = {
+    REMOVE: 'REMOVE',
+    ADD: 'ADD',
+    MOVE: 'MOVE'
+}
+export const OPTIONS_COLORS = {
+    REMOVE: 0xff0000,
+    ADD: 0x00ff00,
+    MOVE: 0x0000ff
+}
+
+export const CONTROLLER_STATE = {
+    REMOVE: 'REMOVE',
+    MOVE: 'MOVE',
+    ADD: 'ADD'
+}
 
 function init() {
     const scene = new Scene;
@@ -56,15 +92,20 @@ function init() {
     const spotLight = new SpotLight(0xffffff, 1.5);
     spotLight.position.set(0, 10, 20);
     spotLight.angle = Math.PI / 2;
-    spotLight.castShadow =true;
+    spotLight.castShadow = true;
     spotLight.shadow.camera.near = 30;
-    spotLight.shadow.camera.far = 80;
+    spotLight.shadow.camera.far = 100;
     spotLight.shadow.bias = -0.000222;
-    spotLight.shadow.mapSize.set(1024,1024);
+    spotLight.shadow.mapSize.set(1024, 1024);
 
     scene.add(ambientLight);
     scene.add(spotLight);
-
+    arrows['uniform'] = new Arrow(0xff0000);
+    arrows['centripetal'] = new Arrow(0x00ff00);
+    arrows['chordal'] = new Arrow(0x0000ff);
+    for (const k in arrows) {
+        scene.add(arrows[k])
+    }
     const planeGeometry = new PlaneBufferGeometry(2000, 2000);
     planeGeometry.rotateX(-Math.PI / 2);
     const planeMaterial = new ShadowMaterial({
@@ -80,40 +121,88 @@ function init() {
     gridHelper.position.set(0, -0.01, 0);
     gridHelper.material.opacity = 0.25;
     gridHelper.material.transparent = true;
-    scene.add(gridHelper)
+    scene.add(gridHelper);
 
-    for(let i=0;i<DEFAULT_SPLINE_POINTS;i++){
-        const splineObj = addSplineObject();
-        scene.add(splineObj);
-        splinePositions[i] = splineObj.position;
-    }
 
-    buildSplineCurve(splinePositions);
-    for(const k in splines){
-        const spline = splines[k];
-        scene.add(spline.mesh)
-    }
+   
 
     const renderer = initRenderer(canvas, {
         width,
         height
     });
+    const controllerOne = new Controller(renderer, 0,onControllerSelect);
+    const controllerTwo = new Controller(renderer,1,()=>{},onControllerReady);
+    SETUP_GLOBALS.ctrl1 = controllerOne;
+    SETUP_GLOBALS.ctrl2 = controllerTwo;
+    scene.add(controllerOne.controller)
+    scene.add(controllerTwo.controller)
+
+    // controllerOne.addCollidableObject(option);
+   
+    SETUP_GLOBALS.controllerState = CONTROLLER_STATE.MOVE;
+    for (let i = 0; i < DEFAULT_SPLINE_POINTS; i++) {
+        const splineObj = new SplineObject({
+            onUpdate: updateSplineOutline,
+            collisionEnd: collisionEnd
+        });
+        scene.add(splineObj);
+        // controllerOne.addSelectableObject(splineObj);
+        controllerOne.addCollidableObject(splineObj);
+        splinePositions[i] = splineObj.position;
+    }
+
+    buildSplineCurve(splinePositions);
+    for (const k in splines) {
+        const spline = splines[k];
+        scene.add(spline.mesh)
+    }
     renderer.setAnimationLoop(update);
     SETUP_GLOBALS.renderer = renderer;
     document.body.appendChild(VRButton.createButton(renderer));
 }
+let t = 0;
 
 function update() {
     const {
         camera,
         scene,
-        renderer
+        renderer,
+        ctrl1,
     } = SETUP_GLOBALS;
+
+    if (ctrl1.updateRaycaster) {
+        ctrl1.sync();
+    }
+
+    for (const k in splines) {
+        const spline = splines[k];
+        const arrow = arrows[k]
+        let pt = spline.getPoint(t);
+        arrow.position.set(pt.x, pt.y, pt.z);
+
+        // get the tangent to the curve
+        let tangent = spline.getTangent(t).normalize();
+
+        // calculate the axis to rotate around
+        axis.crossVectors(up, tangent).normalize();
+
+        // calcluate the angle between the up vector and the tangent
+        let radians = Math.acos(up.dot(tangent));
+
+        // set the quaternion
+        arrow.quaternion.setFromAxisAngle(axis, radians);
+
+        t = (t >= 1) ? 0 : t += 0.0001;
+    }
+
+
     splines.uniform.mesh.visible = true;
     splines.centripetal.mesh.visible = true;
     splines.chordal.mesh.visible = true;
     renderer.render(scene, camera);
 }
+
+
 
 function getWindowSize() {
     const width = window.innerWidth;
@@ -127,10 +216,6 @@ function getWindowSize() {
     };
 }
 
-function generateRandomColor() {
-    const randomColor = `hsl(${random(0,360)},${random(25,100)}%, 35%)`
-    return randomColor;
-}
 
 function initRenderer(canvasEl, {
     width,
@@ -148,38 +233,19 @@ function initRenderer(canvasEl, {
     return renderer;
 }
 
-function addSplineObject(position) {
-    const material = new MeshLambertMaterial({
-        color: generateRandomColor(),
-        opacity: 0.8,
-    });
-    const geometry = new BoxBufferGeometry(0.1, 0.1, 0.1);
-    const obj = new Mesh(geometry, material);
-    obj.castShadow = true;
-    obj.receiveShadow = true;
-    if(isNil(position))
-    {
-        obj.position.set(random(-3.5, 3.5), random(0.5, 3.5), random(-3.4, -0.8));
-    }
-    else{
-        obj.position.copy(position)
-    }
-    return obj;
-}
 
 function buildSplineCurve(positions) {
-    console.log(positions);
-    
-    let curve = new CatmullRomCurve3( positions );
-    let points = curve.getPoints( 150 );
-    let geometry = new BufferGeometry().setFromPoints( points );
-    
+
+    let curve = new CatmullRomCurve3(positions);
+    let points = curve.getPoints(150);
+    let geometry = new BufferGeometry().setFromPoints(points);
+
     curve.curveType = 'catmullrom';
-    curve.mesh = new Line( geometry.clone(), new LineBasicMaterial( {
-      color: 0xff0000,
-      opacity: 0.15,
-      linewidth: CURVE_LINE_WIDTH
-    } ) );
+    curve.mesh = new Line(geometry.clone(), new LineBasicMaterial({
+        color: 0xff0000,
+        opacity: 0.15,
+        linewidth: CURVE_LINE_WIDTH
+    }));
     curve.mesh.position.subScalar(0.005)
     curve.mesh.castShadow = true;
     splines.uniform = curve;
@@ -188,25 +254,100 @@ function buildSplineCurve(positions) {
 
     const centripetalCurve = new CatmullRomCurve3(positions);
     centripetalCurve.curveType = 'centripetal';
-    centripetalCurve.mesh = new Line( geometry.clone(), new LineBasicMaterial( {
-      color: 0x00ff00,
-      opacity: 0.15,
-      linewidth: CURVE_LINE_WIDTH
-    } ) );
+    centripetalCurve.mesh = new Line(geometry.clone(), new LineBasicMaterial({
+        color: 0x00ff00,
+        opacity: 0.15,
+        linewidth: CURVE_LINE_WIDTH
+    }));
     centripetalCurve.mesh.castShadow = true;
     centripetalCurve.tension = 0.1;
     splines.centripetal = centripetalCurve;
 
-    const chordalCurve = new CatmullRomCurve3( positions );
+    const chordalCurve = new CatmullRomCurve3(positions);
     chordalCurve.curveType = 'chordal';
-    chordalCurve.mesh = new Line( geometry.clone(), new LineBasicMaterial( {
-      color: 0x0000ff,
-      opacity: 0.15,
-      linewidth: CURVE_LINE_WIDTH
-    } ) );
+    chordalCurve.mesh = new Line(geometry.clone(), new LineBasicMaterial({
+        color: 0x0000ff,
+        opacity: 0.15,
+        linewidth: CURVE_LINE_WIDTH
+    }));
     chordalCurve.mesh.position.addScalar(0.005)
     chordalCurve.mesh.castShadow = true;
     splines.chordal = chordalCurve;
+}
+
+function onControllerSelect(controller) {
+    if (SETUP_GLOBALS.controllerState === CONTROLLER_STATE.ADD) {
+        const splineObj = new SplineObject({
+            onUpdate: updateSplineOutline,
+            collisionEnd: collisionEnd,
+            position: controller.position.clone()
+        });
+        SETUP_GLOBALS.ctrl1.addCollidableObject(splineObj);
+        SETUP_GLOBALS.scene.add(splineObj);
+        splinePositions.push(splineObj.position);
+        splineObjects.push(splineObj);
+        updateSplineOutline();
+
+    }
+
+}
+
+function updateSplineOutline() {
+    for (const k in splines) {
+
+        const spline = splines[k];
+
+        const splineMesh = spline.mesh;
+        const position = splineMesh.geometry.attributes.position;
+
+        for (let i = 0; i < 151; i++) {
+
+            const t = i / (150);
+            spline.getPoint(t, point);
+            position.setXYZ(i, point.x, point.y, point.z);
+
+        }
+
+        position.needsUpdate = true;
+
+    }
+
+}
+
+function collisionEnd(splineObj,grip) {
+    if (SETUP_GLOBALS.controllerState === CONTROLLER_STATE.REMOVE) {
+        SETUP_GLOBALS.ctrl1.removeCollidableObject(splineObj)
+        // splineObj.destroy();
+        pull(splineObjects, splineObj);
+        pull(splinePositions, splineObj.position);
+        SETUP_GLOBALS.scene.remove(splineObj);
+        updateSplineOutline();
+    }
+}
+
+
+function onOptionSelect(option) {
+    if (option === OPTIONS.REMOVE) {
+        SETUP_GLOBALS.controllerState = CONTROLLER_STATE.REMOVE;
+    }
+    if (option === OPTIONS.ADD) {
+        SETUP_GLOBALS.controllerState = CONTROLLER_STATE.ADD
+    }
+    if (option === OPTIONS.MOVE) {
+        SETUP_GLOBALS.controllerState = CONTROLLER_STATE.MOVE;
+    }
+}
+
+function onControllerReady(controller) {
+    let yPosition = 0.1;
+
+    map(OPTIONS,(value,key) => {
+        const option = new OptionMesh(value,OPTIONS_COLORS[key], onOptionSelect);
+        option.position.set(0,yPosition,0);
+        yPosition += 0.05;
+        SETUP_GLOBALS.ctrl1.addCollidableObject(option);
+        controller.add(option)
+    })
 }
 
 // function calls

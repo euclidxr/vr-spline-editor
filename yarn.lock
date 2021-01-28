@@ -847,6 +847,14 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
+"@euclidxr/components@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@euclidxr/components/-/components-0.0.1.tgz#9371b7f717212965b0e3fbeec9b23d3705de81ac"
+  integrity sha512-4l/BugYlHUS6vD6s//2X6Dp24x+mFm6pVir6Ou2Hn+u/ANLim5S28HIYAl/AfFqcxn9lHBU4T+udZc9cBbDxSQ==
+  dependencies:
+    lodash "^4.17.20"
+    three "^0.123.0"
+
 "@iarna/toml@^2.2.0":
   version "2.2.5"
   resolved "https://registry.yarnpkg.com/@iarna/toml/-/toml-2.2.5.tgz#b32366c89b43c6f8cefbdefac778b9c828e3ba8c"
@@ -4780,6 +4788,11 @@ terser@^4.8.0:
     commander "^2.20.0"
     source-map "~0.6.1"
     source-map-support "~0.5.12"
+
+three@^0.123.0:
+  version "0.123.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.123.0.tgz#3bb6d8f908a432eb7cd450f7eab6dd40fde53085"
+  integrity sha512-KNnx/IbilvoHRkxOtL0ouozoDoElyuvAXhFB21RK7F5IPWSmqyFelICK6x3hJerLNSlAdHxR0hkuvMMhH9pqXg==
 
 three@^0.124.0:
   version "0.124.0"

@@ -6,6 +6,7 @@
   "author": "deep <cdeep.work@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@euclidxr/components": "^0.0.1",
     "lodash": "^4.17.20",
     "parcel": "^1.12.4",
     "three": "^0.124.0"
