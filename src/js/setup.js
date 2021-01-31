@@ -1,14 +1,11 @@
 // FIXME: Shadow is not yet cast
 
 import {
-    isNil,
     map,
     pull,
-    random
 } from "lodash";
 import {
     AmbientLight,
-    BoxBufferGeometry,
     BufferGeometry,
     CatmullRomCurve3,
     Color,
@@ -16,7 +13,6 @@ import {
     Line,
     LineBasicMaterial,
     Mesh,
-    MeshLambertMaterial,
     PerspectiveCamera,
     PlaneBufferGeometry,
     Scene,
@@ -37,7 +33,7 @@ import {
 } from './options';
 import {
     Controller
-} from "./raycaster";
+} from "./controller";
 import {
     SplineObject
 } from "./spline-object";
@@ -124,8 +120,6 @@ function init() {
     scene.add(gridHelper);
 
 
-   
-
     const renderer = initRenderer(canvas, {
         width,
         height
@@ -138,7 +132,6 @@ function init() {
     scene.add(controllerTwo.controller)
 
     // controllerOne.addCollidableObject(option);
-   
     SETUP_GLOBALS.controllerState = CONTROLLER_STATE.MOVE;
     for (let i = 0; i < DEFAULT_SPLINE_POINTS; i++) {
         const splineObj = new SplineObject({
@@ -317,7 +310,6 @@ function updateSplineOutline() {
 function collisionEnd(splineObj,grip) {
     if (SETUP_GLOBALS.controllerState === CONTROLLER_STATE.REMOVE) {
         SETUP_GLOBALS.ctrl1.removeCollidableObject(splineObj)
-        // splineObj.destroy();
         pull(splineObjects, splineObj);
         pull(splinePositions, splineObj.position);
         SETUP_GLOBALS.scene.remove(splineObj);
