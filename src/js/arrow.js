@@ -13,9 +13,9 @@ const cone = new Mesh(coneGeom,material);
 export class Arrow extends Mesh{
     constructor(color = generateRandomColor()){
         super(cylinderGeom,material);
-        cylinderGeom.merge(cone.geometry,cone.matrix); 
+        cylinderGeom.merge(cone.geometry,cone.matrix);
         this.scale.set(0.1,0.1,0.1);
-        this.material = material.clone();  
+        this.material = material.clone();
         this.material.color = new Color(color);
     }
 }

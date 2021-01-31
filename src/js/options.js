@@ -1,5 +1,4 @@
-import { Color, Mesh, MeshLambertMaterial, MeshPhongMaterial, SphereBufferGeometry } from "three"
-import { OPTIONS } from "./setup";
+import { Color, Mesh, MeshPhongMaterial, SphereBufferGeometry } from "three"
 
 
 

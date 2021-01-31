@@ -1,4 +1,3 @@
-// FIXME: Spline Curve Editor is attached to camera somewhere
 
 import {
     BoxBufferGeometry,
