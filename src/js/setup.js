@@ -125,22 +125,21 @@ function init() {
         height
     });
     const controllerOne = new Controller(renderer, 0,onControllerSelect);
-    const controllerTwo = new Controller(renderer,1,()=>{},onControllerReady);
+    const controllerTwo = new Controller(renderer,1,()=>{},onControllerReady,false);
     SETUP_GLOBALS.ctrl1 = controllerOne;
     SETUP_GLOBALS.ctrl2 = controllerTwo;
     scene.add(controllerOne.controller)
     scene.add(controllerTwo.controller)
 
-    // controllerOne.addCollidableObject(option);
+    // controllerOne.addSelectableObject(option);
     SETUP_GLOBALS.controllerState = CONTROLLER_STATE.MOVE;
     for (let i = 0; i < DEFAULT_SPLINE_POINTS; i++) {
         const splineObj = new SplineObject({
             onUpdate: updateSplineOutline,
-            collisionEnd: collisionEnd
+            selectionEnd: selectEnd
         });
         scene.add(splineObj);
-        // controllerOne.addSelectableObject(splineObj);
-        controllerOne.addCollidableObject(splineObj);
+        controllerOne.addSelectableObject(splineObj);
         splinePositions[i] = splineObj.position;
     }
 
@@ -163,30 +162,30 @@ function update() {
         ctrl1,
     } = SETUP_GLOBALS;
 
-    if (ctrl1.updateRaycaster) {
+    if (ctrl1.isAlive) {
         ctrl1.sync();
     }
 
-    for (const k in splines) {
-        const spline = splines[k];
-        const arrow = arrows[k]
-        let pt = spline.getPoint(t);
-        arrow.position.set(pt.x, pt.y, pt.z);
+    // for (const k in splines) {
+    //     const spline = splines[k];
+    //     const arrow = arrows[k]
+    //     let pt = spline.getPoint(t);
+    //     arrow.position.set(pt.x, pt.y, pt.z);
 
-        // get the tangent to the curve
-        let tangent = spline.getTangent(t).normalize();
+    //     // get the tangent to the curve
+    //     let tangent = spline.getTangent(t).normalize();
 
-        // calculate the axis to rotate around
-        axis.crossVectors(up, tangent).normalize();
+    //     // calculate the axis to rotate around
+    //     axis.crossVectors(up, tangent).normalize();
 
-        // calcluate the angle between the up vector and the tangent
-        let radians = Math.acos(up.dot(tangent));
+    //     // calcluate the angle between the up vector and the tangent
+    //     let radians = Math.acos(up.dot(tangent));
 
-        // set the quaternion
-        arrow.quaternion.setFromAxisAngle(axis, radians);
+    //     // set the quaternion
+    //     arrow.quaternion.setFromAxisAngle(axis, radians);
 
-        t = (t >= 1) ? 0 : t += 0.0001;
-    }
+    //     t = (t >= 1) ? 0 : t += 0.0001;
+    // }
 
 
     splines.uniform.mesh.visible = true;
@@ -272,10 +271,10 @@ function onControllerSelect(controller) {
     if (SETUP_GLOBALS.controllerState === CONTROLLER_STATE.ADD) {
         const splineObj = new SplineObject({
             onUpdate: updateSplineOutline,
-            collisionEnd: collisionEnd,
+            selectionEnd: selectEnd,
             position: controller.position.clone()
         });
-        SETUP_GLOBALS.ctrl1.addCollidableObject(splineObj);
+        SETUP_GLOBALS.ctrl1.addSelectableObject(splineObj);
         SETUP_GLOBALS.scene.add(splineObj);
         splinePositions.push(splineObj.position);
         splineObjects.push(splineObj);
@@ -307,12 +306,12 @@ function updateSplineOutline() {
 
 }
 
-function collisionEnd(splineObj,grip) {
+function selectEnd(splineObj) {
     if (SETUP_GLOBALS.controllerState === CONTROLLER_STATE.REMOVE) {
-        SETUP_GLOBALS.ctrl1.removeCollidableObject(splineObj)
+        SETUP_GLOBALS.ctrl1.removeSelectableObject(splineObj)
         pull(splineObjects, splineObj);
         pull(splinePositions, splineObj.position);
-        SETUP_GLOBALS.scene.remove(splineObj);
+        splineObj.destroy();
         updateSplineOutline();
     }
 }
@@ -336,8 +335,8 @@ function onControllerReady(controller) {
     map(OPTIONS,(value,key) => {
         const option = new OptionMesh(value,OPTIONS_COLORS[key], onOptionSelect);
         option.position.set(0,yPosition,0);
-        yPosition += 0.05;
-        SETUP_GLOBALS.ctrl1.addCollidableObject(option);
+        yPosition += 0.1;
+        SETUP_GLOBALS.ctrl1.addSelectableObject(option);
         controller.add(option)
     })
 }

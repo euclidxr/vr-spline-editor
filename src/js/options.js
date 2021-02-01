@@ -7,7 +7,7 @@ const material = new MeshPhongMaterial({
     emissive:true
 });
 
-const geometry = new SphereBufferGeometry(0.01,32,32)
+const geometry = new SphereBufferGeometry(0.03,32,32)
 
 export class OptionMesh extends Mesh {
     constructor(name,color,onSelect = () => {}){
@@ -15,15 +15,23 @@ export class OptionMesh extends Mesh {
         this.name = name;
         this.onSelect = onSelect;
         this.material = material.clone();
-        this.material.color = new Color(color)
+        this.material.color = new Color(color);
+        this.material.transparent = true;
     }
 
-    onCollisionEnd = (grip,controllerModel) => {
-        controllerModel.children.forEach(child => child.material.color = new Color(this.material.color));
+    onSelect = () => {
+        this.material.opacity = 0.2;
+        this.scale.set(0.8,0.8,0.8);
+    }
+
+    onSelectEnd = (controller) => {
+        controller.children[0].children.forEach(child => child.material.color = new Color(this.material.color));
+        this.material.opacity = 1;
+        this.scale.set(1,1,1);
         this.onSelect(this.name);
+
     }
 
     update = () => {
-        console.log('collided')
     }
 }
